@@ -51,7 +51,7 @@ namespace NDraw
       Draw.Clear();
     }
 
-    private WaitForEndOfFrame Wof = new WaitForEndOfFrame();
+    private WaitForEndOfFrame Wof = new();
 
 #if !NDRAW_UPDATE_IN_COROUTINE
     private void OnPostRender()
@@ -84,13 +84,13 @@ namespace NDraw
       Material = new Material(shader);
       //material.hideFlags = HideFlags.HideAndDontSave;
       // Turn on alpha blending
+      Material.SetColor("_Color", new(1, 1, 1, 1));
       Material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
       Material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
       // Turn backface culling off
       Material.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
       // Turn off depth writes
       Material.SetInt("_ZWrite", 0);
-
       // makes the material draw on top of everything
       Material.SetInt("_ZTest", 0);
     }

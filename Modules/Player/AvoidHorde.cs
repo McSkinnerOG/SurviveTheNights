@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using uLink;
 
-namespace SurviveTheNights.Player
+namespace SurviveTheNights.Modules.Player
 {
   public class AvoidHorde
   {
@@ -19,7 +19,7 @@ namespace SurviveTheNights.Player
             return false;
           }
           var curHorde = ZombieHordesManager.instance.curHorde;
-          if(curHorde == null) { return false; }
+          if(curHorde == null) return false;
           PlayerOwner.instance.networkView.RPC("FleeHordeServer", RPCMode.Server, []);
           MessageSystem.instance.AddMessageToChatClient($"AUTO AVOIDED HORDE!: ", "red", "(or at least attempted to.)");
           __instance.ResetTimer();
@@ -29,5 +29,4 @@ namespace SurviveTheNights.Player
       }
     }
   }
-
 }

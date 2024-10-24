@@ -1,4 +1,4 @@
-﻿namespace SurviveTheNights.Movement
+﻿namespace SurviveTheNights.Modules.Movement
 {
   public class JumpHacks
   {

@@ -3,14 +3,14 @@ using System.Linq;
 using NDraw;
 using UnityEngine;
 
-namespace SurviveTheNights.Render
+namespace SurviveTheNights.Modules.Render
 {
   public class ESP
   {
     public static bool Enabled = false;
     public static bool AdvancedOptions = false;
     public static float AdvancedOptionsDistance = 5f;
-    public static float AdvancedOptionsRadius = 100f;
+    public static float AdvancedOptionsRadius = 50f;
     #region ESP TYPES
     public static bool EspAnimal = false;
     public static bool EspItem = true;
@@ -100,7 +100,7 @@ namespace SurviveTheNights.Render
         }
         if(EspAnimal && EspDistanceAnimals > Distance && nvb.name.Contains("AI_") && !nvb.name.Contains("Zombie")) { RenderAnimals(nvb.gameObject); }
         if(EspPlayer && EspDistancePlayers > Distance && nvb.name.Contains("Player@Proxy(Clone)")) { RenderPlayer(nvb.gameObject); }
-        if(EspZombie && EspDistanceZombies > Distance && nvb.name.Contains("AI_Zombie@Proxy(Clone)")) { RenderZombies(nvb.gameObject); }
+        if(EspZombie && EspDistanceZombies > Distance && nvb.name.Contains("Zombie")) { RenderZombies(nvb.gameObject); }
       }
     }
     public static void RenderItems(GameObject go, InventorySlot inventory, SpawnTypes category)
@@ -112,6 +112,7 @@ namespace SurviveTheNights.Render
       if(w2s.z > 0)
       {
         var renderer = go.GetComponentInChildren<MeshRenderer>();
+        renderer.material = Material;
         var text = $"              {inventory.itemName_Localized}\n";
         var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
         if(sdist < AdvancedOptionsRadius && Distance < AdvancedOptionsDistance)
@@ -142,6 +143,7 @@ namespace SurviveTheNights.Render
       {
         var aiProxy = go.GetComponent<AiProxyPassive>();
         var meshRenderer = go.GetComponentInChildren<SkinnedMeshRenderer>();
+        meshRenderer.material = Material;
         var boxCollider = go.GetComponent<BoxCollider>();
         var position = go.transform.position;
         var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
@@ -214,10 +216,14 @@ namespace SurviveTheNights.Render
         GUI.Label(new Rect(w2s.x - 130, Screen.height - w2s.y, 400, 500), new GUIContent(text));
         GUI.color = Color.white;
         var renderer = go.GetComponentInChildren<MeshRenderer>();
-        if(renderer != null && Draw3DBox)
+        if(renderer != null)
         {
-          if(FilterFood && category == SpawnTypes.Food) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); }
-          if(FilterWater && category == SpawnTypes.Drink) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); }
+          renderer.material = Material;
+          if(Draw3DBox)
+          {
+            if(FilterFood && category == SpawnTypes.Food) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); }
+            if(FilterWater && category == SpawnTypes.Drink) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); }
+          }
         }
 
       }
@@ -231,6 +237,7 @@ namespace SurviveTheNights.Render
       if(w2s.z > 0)
       {
         var renderer = go.GetComponentInChildren<MeshRenderer>();
+        renderer.material = Material;
         var text = $"              Weapon: {inventory.itemName_Localized}\n";
         var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
         if(sdist < AdvancedOptionsRadius && Distance < AdvancedOptionsDistance)
@@ -261,6 +268,7 @@ namespace SurviveTheNights.Render
       if(w2s.z > 0)
       {
         var renderer = go.GetComponentInChildren<MeshRenderer>();
+
         var text = $"              || Tool: {inventory.category}\n";
         var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
         if(sdist < AdvancedOptionsRadius && Distance < AdvancedOptionsDistance)
@@ -279,7 +287,7 @@ namespace SurviveTheNights.Render
         GUI.color = Utils.GUIColorByDistance(Distance);
         GUI.Label(new Rect(w2s.x - 130, Screen.height - w2s.y, 400, 500), new GUIContent(text));
         GUI.color = Color.white;
-        if(renderer != null && Draw3DBox) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); }
+        if(renderer != null) { renderer.material = Material; if(renderer != null && Draw3DBox) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); } }
       }
     }
     public static void RenderMedical(GameObject go, InventorySlot inventory, SpawnTypes category)
@@ -314,7 +322,7 @@ namespace SurviveTheNights.Render
         GUI.color = Utils.GUIColorByDistance(Distance);
         GUI.Label(new Rect(w2s.x - 130, Screen.height - w2s.y, 400, 500), new GUIContent(text));
         GUI.color = Color.white;
-        if(renderer != null && Draw3DBox) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); }
+        if(renderer != null) { renderer.material = Material; if(renderer != null && Draw3DBox) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); } }
       }
     }
     public static void RenderPlayer(GameObject go)
@@ -416,6 +424,7 @@ namespace SurviveTheNights.Render
         }
       }
     }
+    public static Material Material;
     public static void RenderZombies(GameObject go)
     {
       var trans = go.transform;
@@ -445,7 +454,7 @@ namespace SurviveTheNights.Render
         GUI.color = Utils.GUIColorByDistance(Distance);
         GUI.Label(new Rect(w2s.x - 100, Screen.height - w2s.y, 400, 500), text);
         GUI.color = Color.white;
-        if(renderer != null && Draw3DBox) { Draw.World.Cube(new Vector3(pos.x, renderer.bounds.center.y, pos.z), renderer.bounds.size, trans.forward, trans.up); }
+        if(renderer != null) { renderer.material = Material; if(renderer != null && Draw3DBox) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); } }
       }
     }
 

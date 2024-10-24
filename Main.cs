@@ -4,10 +4,10 @@ using System.Reflection;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-using SurviveTheNights.Combat;
-using SurviveTheNights.Movement;
-using SurviveTheNights.Player;
-using SurviveTheNights.Render;
+using SurviveTheNights.Modules.Combat;
+using SurviveTheNights.Modules.Movement;
+using SurviveTheNights.Modules.Player;
+using SurviveTheNights.Modules.Render;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 namespace SurviveTheNights
@@ -42,7 +42,24 @@ namespace SurviveTheNights
       ModFolder = Path.GetDirectoryName(Assembly.Location);
     }
     public void Start() { Harmony.PatchAll(Assembly); }
-    public void Awake() { MenuManager = gameObject.AddComponent<MenuManager>(); }
+    public void Awake() { MenuManager = gameObject.AddComponent<MenuManager>(); CreateChamsMaterial(); }
+    public static Shader CreateChamsMaterial()
+    {
+      var shader = Shader.Find("Hidden/Internal-Colored");
+      ESP.Material = new Material(shader);
+      //material.hideFlags = HideFlags.HideAndDontSave;
+      // Turn on alpha blending
+      ESP.Material.SetColor("_Color", new(1, 1, 1, 1));
+      ESP.Material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+      ESP.Material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+      // Turn backface culling off
+      ESP.Material.SetInt("_Cull", (int)UnityEngine.Rendering.CullMode.Off);
+      // Turn off depth writes
+      ESP.Material.SetInt("_ZWrite", 0);
+      // makes the material draw on top of everything
+      ESP.Material.SetInt("_ZTest", 0);
+      return shader;
+    }
     public void Update()
     {
       CurrentSceneName = SceneManager.GetActiveScene().name.ToLowerInvariant();

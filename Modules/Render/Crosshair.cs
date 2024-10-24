@@ -1,7 +1,7 @@
 ﻿using NDraw;
 using UnityEngine;
 
-namespace SurviveTheNights.Render
+namespace SurviveTheNights.Modules.Render
 {
   public class Crosshair
   {

@@ -1,7 +1,7 @@
-﻿using SurviveTheNights.Combat;
-using SurviveTheNights.Movement;
-using SurviveTheNights.Player;
-using SurviveTheNights.Render;
+﻿using SurviveTheNights.Modules.Combat;
+using SurviveTheNights.Modules.Movement;
+using SurviveTheNights.Modules.Player;
+using SurviveTheNights.Modules.Render;
 using UnityEngine;
 
 namespace SurviveTheNights

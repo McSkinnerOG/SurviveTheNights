@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 
-namespace SurviveTheNights.Combat
+namespace SurviveTheNights.Modules.Combat
 {
   public class AntiJam
   {
