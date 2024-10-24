@@ -1,40 +1,27 @@
-﻿using BepInEx;
+﻿using System.IO;
+using System.Reflection;
+using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
-using System.IO;
-using System.Reflection;
-
 namespace SurviveTheNights
 {
-    [BepInPlugin(GUID, MODNAME, VERSION)]
-    public class Main : BaseUnityPlugin
+  [BepInPlugin(GUID, MODNAME, VERSION)]
+  public class Main : BaseUnityPlugin
+  {
+    #region[Declarations] 
+    public const string MODNAME = "SurviveTheNights", AUTHOR = "VALIDUSER", GUID = AUTHOR + "_" + MODNAME, VERSION = "1.0.0";
+    internal readonly ManualLogSource Log;
+    internal readonly Harmony Harmony;
+    internal readonly Assembly Assembly;
+    public readonly string ModFolder;
+    #endregion
+    public Main()
     {
-        #region[Declarations]
-
-        public const string
-            MODNAME = "SurviveTheNights",
-            AUTHOR = "",
-            GUID = AUTHOR + "_" + MODNAME,
-            VERSION = "1.0.0.0";
-
-        internal readonly ManualLogSource log;
-        internal readonly Harmony harmony;
-        internal readonly Assembly assembly;
-        public readonly string modFolder;
-
-        #endregion
-
-        public Main()
-        {
-            log = Logger;
-            harmony = new Harmony(GUID);
-            assembly = Assembly.GetExecutingAssembly();
-            modFolder = Path.GetDirectoryName(assembly.Location);
-        }
-
-        public void Start()
-        {
-            harmony.PatchAll(assembly);
-        }
+      Log = Logger;
+      Harmony = new Harmony(GUID);
+      Assembly = Assembly.GetExecutingAssembly();
+      ModFolder = Path.GetDirectoryName(Assembly.Location);
     }
+    public void Start() { Harmony.PatchAll(Assembly); }
+  }
 }
