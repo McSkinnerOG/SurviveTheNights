@@ -1,16 +1,18 @@
-﻿namespace SurviveTheNights.Player
+﻿namespace SurviveTheNights.Movement
 {
   public class Speed
   {
+    public static bool Enabled = true;
     public static float MaxSprintSpeed = 5.8f;
     public static float SprintSidewaysSpeed = 3f;
     public static float DefaultAirAcceleration = 20f;
     public static float SprintAirAcceleration = 25f;
     public static float MaxAirAcceleration = 25f;
     public static float SprintGroundAcceleration = 50f;
-    public static void SpeedHack(bool state)
+    public static void SpeedHack()
     {
-      if(state == true)
+      Enabled = !Enabled;
+      if(Enabled)
       {
         Main.BYPASS_RPC_SETPOS_FROM_SERVER = true;
         Main.BYPASS_PATCH_VELOCITY = true;
@@ -24,9 +26,9 @@
       }
       else
       {
-        if(!Main.B_JumpHack)
+        if(!JumpHacks.Enabled)
         {
-          Refs.LP_CharMotorDB.FDenabled = true;
+          Refs.LP_CharMotorDB.FDenabled = Main.NoFall;
           Main.BYPASS_RPC_SETPOS_FROM_SERVER = false;
           Main.BYPASS_PATCH_VELOCITY = false;
         }

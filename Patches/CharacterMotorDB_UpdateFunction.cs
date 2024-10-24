@@ -5,11 +5,11 @@ using UnityEngine;
 
 namespace SurviveTheNights.Patches
 {
-  internal class CharacterMotorDB_P
+  public class CharacterMotorDB_UpdateFunction
   {
     #region Bypass_Velocity
     [HarmonyPatch(typeof(CharacterMotorDB), "UpdateFunction", null)]
-    public class CharacterMotorDB_UpdateFunction
+    public class P_CharacterMotorDB_UpdateFunction
     {
       public static bool Prefix(CharacterMotorDB __instance)
       {
@@ -17,29 +17,33 @@ namespace SurviveTheNights.Patches
         {
           __instance.playerOwner = __instance.GetComponentInChildren<PlayerOwner>();
         }
-        if(PoolServers.instance.waitingOnStreamerLoad && __instance.terrainRayIndex < 0) { return false; }
-        if(CharacterMotorDB.paused) { return false; }
-        if(__instance.frozen) { return false; }
+        if(PoolServers.instance.waitingOnStreamerLoad && __instance.terrainRayIndex < 0)
+        {
+          return false;
+        }
+        if(CharacterMotorDB.paused)
+        {
+          return false;
+        }
+        if(__instance.frozen)
+        {
+          return false;
+        }
         if(__instance.diving)
         {
           var y = __instance.movement.velocity.y;
-          __instance.SetVelocity((__instance.transform.forward * 20f) + (Vector3.up * y));
+          __instance.SetVelocity(__instance.transform.forward * 20f + Vector3.up * y);
         }
-        // #CHEAT# BYPASS VELOCITY
-        if(__instance.movement.velocity.y > 3.5f)
+        if(__instance.movement.velocity.y > 3.5f && Main.BYPASS_PATCH_VELOCITY != true)
         {
-          if(!Main.BYPASS_PATCH_VELOCITY)
-          {
-            Debug.Log("Your Y velocity is being stopped because it was way too much! " + __instance.movement.velocity.y.ToString());
-            __instance.movement.velocity.y = 0f;
-          }
-          MessageSystem.instance.AddMessageToChatClient("BYPASS::", "red", "VELOCITY:" + __instance.movement.velocity.y.ToString());
+          Debug.Log("Your Y velocity is being stopped because it was way too much! " + __instance.movement.velocity.y.ToString());
+          __instance.movement.velocity.y = 0f;
         }
         if(__instance.vegetationTimer < 10f)
         {
           __instance.vegetationTimer += Time.deltaTime;
         }
-        if(__instance.vegetationTimer is > 0.25f and < 100f)
+        if(__instance.vegetationTimer > 0.25f && __instance.vegetationTimer < 100f)
         {
           __instance.noLongerWalkingInVegetation = true;
         }
@@ -56,19 +60,17 @@ namespace SurviveTheNights.Patches
           __instance.vegetationTimer = 200f;
           __instance.noLongerWalkingInVegetation = false;
         }
-
-        _ = __instance.movement.velocity;
+        var vector = __instance.movement.velocity;
         __instance.terrainRayIndex++;
         if(__instance.terrainRayIndex > 3)
         {
           __instance.terrainRayIndex = 0;
-          __instance.terrainRay = new Ray(__instance.transform.position + (Vector3.up * 400f), Vector3.down);
+          __instance.terrainRay = new Ray(__instance.transform.position + Vector3.up * 400f, Vector3.down);
           if(Physics.Raycast(__instance.terrainRay, out __instance.terrainHit, 1000f, LayerMask.GetMask(["Terrain"])) && __instance.terrainHit.collider != null && __instance.terrainHit.collider.name.Contains("TerrainV2"))
           {
-            var position1 = __instance.transform.position;
-            var num = Vector3.Distance(__instance.terrainHit.point, position1);
-            var flag = position1.y < __instance.terrainHit.point.y;
-            var flag2 = num is > 1.8f and <= 40f;
+            var num = Vector3.Distance(__instance.terrainHit.point, __instance.transform.position);
+            var flag = __instance.transform.position.y < __instance.terrainHit.point.y;
+            var flag2 = num > 1.8f && num <= 40f;
             var flag3 = num > 40f;
             if(OceanAndSunCulling.instance && OceanAndSunCulling.instance.insideColliderCount > 0)
             {
@@ -76,17 +78,17 @@ namespace SurviveTheNights.Patches
             }
             if(flag && (flag2 || flag3))
             {
-              _ = a2z_General.IsUnderCover(__instance.transform.position);
-              __instance.transform.position = __instance.terrainHit.point + (Vector3.up * 0.8f);
-              _ = __instance.ApplyInputVelocityChange(Vector3.zero);
+              a2z_General.IsUnderCover(__instance.transform.position);
+              __instance.transform.position = __instance.terrainHit.point + Vector3.up * 0.8f;
+              vector = __instance.ApplyInputVelocityChange(Vector3.zero);
             }
           }
         }
-        _ = __instance.ApplyInputVelocityChange(__instance.movement.velocity);
-        _ = __instance.ApplyGravityAndJumping(__instance.movement.velocity);
-        _ = Vector3.zero;
+        vector = __instance.ApplyInputVelocityChange(vector);
+        vector = __instance.ApplyGravityAndJumping(vector);
+        var zero = Vector3.zero;
         var position = __instance.tr.position;
-        var vector2 = __instance.movement.velocity * Time.deltaTime;
+        var vector2 = vector * Time.deltaTime;
         var num2 = Mathf.Max(__instance.controller.stepOffset, new Vector3(vector2.x, 0f, vector2.z).magnitude);
         if(PoolServers.currentState != StateNew.inGame)
         {
@@ -105,7 +107,7 @@ namespace SurviveTheNights.Patches
         }
         __instance.movement.lastHitPoint = __instance.movement.hitPoint;
         __instance.lastGroundNormal = __instance.groundNormal;
-        var vector3 = new Vector3(__instance.movement.velocity.x, 0f, __instance.movement.velocity.z);
+        var vector3 = new Vector3(vector.x, 0f, vector.z);
         __instance.movement.velocity = (__instance.tr.position - position) / Time.deltaTime;
         var vector4 = new Vector3(__instance.movement.velocity.x, 0f, __instance.movement.velocity.z);
         if(vector3 == Vector3.zero)
@@ -115,14 +117,14 @@ namespace SurviveTheNights.Patches
         else
         {
           var num3 = Vector3.Dot(vector4, vector3) / vector3.sqrMagnitude;
-          __instance.movement.velocity = (vector3 * Mathf.Clamp01(num3)) + (__instance.movement.velocity.y * Vector3.up);
+          __instance.movement.velocity = vector3 * Mathf.Clamp01(num3) + __instance.movement.velocity.y * Vector3.up;
         }
-        if(__instance.movement.velocity.y < __instance.movement.velocity.y - 0.001f)
+        if(__instance.movement.velocity.y < vector.y - 0.001f)
         {
           if(__instance.movement.velocity.y < 0f)
           {
             var velocity = __instance.movement.velocity;
-            velocity.y = __instance.movement.velocity.y;
+            velocity.y = vector.y;
             __instance.movement.velocity = velocity;
           }
           else
@@ -147,7 +149,7 @@ namespace SurviveTheNights.Patches
             __instance.GetComponent<AudioSource>().PlayOneShot(__instance.proneLandSound);
           }
           __instance.BroadcastMessage("Landed", SendMessageOptions.DontRequireReceiver);
-          var num4 = -__instance.movement.velocity.y;
+          var num4 = -vector.y;
           if(__instance.playerOwner == null)
           {
             __instance.playerOwner = __instance.GetComponentInChildren<PlayerOwner>();
@@ -156,12 +158,7 @@ namespace SurviveTheNights.Patches
           {
             if(num4 >= 8f)
             {
-              // #CHEAT# NOFALL
-              if(!Main.B_NoFall)
-              {
-                __instance.GetComponent<uLinkNetworkView>().RPC("ApplyFD", RPCMode.Server, num4);
-              }
-              MessageSystem.instance.AddMessageToChatClient("BYPASS::", "red", "FallDamage" + __instance.movement.velocity.y.ToString());
+              __instance.GetComponent<uLinkNetworkView>().RPC<float>("ApplyFD", RPCMode.Server, num4);
             }
             var num5 = Mathf.Clamp(-num4 / 20f, -1f, 0f);
             GunLook.jostleAmt = new Vector3(0f, num5 * 0.5f, 0f);
@@ -173,8 +170,8 @@ namespace SurviveTheNights.Patches
             }
           }
         }
-        __instance.velocityForNetwork = __instance.movement.velocity;
-        _ = Vector3.zero;
+        __instance.velocityForNetwork = vector;
+        vector = Vector3.zero;
         return false;
       }
     }

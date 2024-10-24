@@ -1,4 +1,4 @@
-﻿namespace SurviveTheNights.Player
+﻿namespace SurviveTheNights.Movement
 {
   public class JumpHacks
   {
@@ -7,9 +7,11 @@
     public static float DefaultAirAcceleration = 20f;
     public static float MaxAirAcceleration = 25f;
     public static bool FDenabled = true;
-    public static void Toggle(bool state)
+    public static bool Enabled = true;
+    public static void Toggle()
     {
-      if(state == true)
+      Enabled = !Enabled;
+      if(Enabled)
       {
         Main.BYPASS_RPC_SETPOS_FROM_SERVER = true;
         Main.BYPASS_PATCH_VELOCITY = true;
@@ -25,8 +27,8 @@
         Refs.LP_CharMotorDB.jumping.extraHeight = 0.5f;
         Refs.LP_CharMotorDB.movement.defaultAirAcceleration = 20f;
         Refs.LP_CharMotorDB.movement.maxAirAcceleration = 25f;
-        Refs.LP_CharMotorDB.FDenabled = true;
-        if(!Main.B_SpeedHack)
+        Refs.LP_CharMotorDB.FDenabled = Main.NoFall;
+        if(!Speed.Enabled)
         {
           Main.BYPASS_RPC_SETPOS_FROM_SERVER = false;
           Main.BYPASS_PATCH_VELOCITY = false;

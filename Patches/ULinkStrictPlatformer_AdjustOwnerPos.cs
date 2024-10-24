@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace SurviveTheNights.Patches
 {
-  internal class ULinkStrictPlatformer_Patch
+  public class ULinkStrictPlatformer_AdjustOwnerPos
   {
     #region BYPASS_RPC AdjustOwnerPos
     [HarmonyPatch(typeof(uLinkStrictPlatformer), nameof(uLinkStrictPlatformer.AdjustOwnerPos))]

@@ -4,6 +4,8 @@ using System.Reflection;
 using BepInEx;
 using BepInEx.Logging;
 using HarmonyLib;
+using SurviveTheNights.Combat;
+using SurviveTheNights.Movement;
 using SurviveTheNights.Player;
 using SurviveTheNights.Render;
 using UnityEngine;
@@ -23,19 +25,14 @@ namespace SurviveTheNights
     public static bool Debug_MessageToConsole = true;
     public static bool Debug_MessageToIngame = true;
     public static string CurrentSceneName = "";
-    #region [ HACK REQUIRED DECLARATIONS ]   
-    public static bool B_AntiJam = false;
-    public static bool B_AvoidHordes = false;
-    public static bool B_NoSlow = false;
-    public static bool B_SpeedHack = false;
-    public static bool B_JumpHack = false;
-    public static bool B_Crosshair = false;
-    public static bool B_CrosshairCircle = false;
-    public static bool B_NoFall = false;
-    public static bool B_AutoCollect = false;
+    #region [ HACK REQUIRED DECLARATIONS ]    
+    public static bool NoSlow = false;
+    public static bool CrosshairCircle = false;
+    public static bool NoFall = false;
+    public static bool AutoCollect = false;
     #endregion
-    public static bool BYPASS_PATCH_VELOCITY = false;         // DONE 
-    public static bool BYPASS_RPC_SETPOS_FROM_SERVER = false; // DONE  
+    public static bool BYPASS_PATCH_VELOCITY = true;
+    public static bool BYPASS_RPC_SETPOS_FROM_SERVER = true;
     public MenuManager MenuManager;
     public Main()
     {
@@ -50,25 +47,43 @@ namespace SurviveTheNights
     {
       CurrentSceneName = SceneManager.GetActiveScene().name.ToLowerInvariant();
       if(CurrentSceneName is "menuscene_farm" or not "clientmanager") return;
-      if(Input.GetKeyDown(KeyCode.F2)) { MenuManager.ShowMenu = !MenuManager.ShowMenu; }
-      if(Input.GetKeyDown(KeyCode.Keypad0)) { B_SpeedHack = !B_SpeedHack; }
-      if(Input.GetKeyDown(KeyCode.Keypad1)) { B_JumpHack = !B_JumpHack; JumpHacks.Toggle(B_JumpHack); }
-      if(Input.GetKeyDown(KeyCode.Keypad2)) { B_NoSlow = !B_NoSlow; }
-      if(Input.GetKeyDown(KeyCode.Keypad4)) { B_AntiJam = !B_AntiJam; }
-      if(Input.GetKeyDown(KeyCode.Keypad5)) { B_Crosshair = !B_Crosshair; }
-      if(Input.GetKeyDown(KeyCode.Keypad6))
+      if(Refs.LP_Owner == null) return;
+      if(PlayerOwner.instance == null) return;
+      if(Refs.LP_CharMotorDB == null) return;
+      if(Refs.LP_CharMotorDB.movement == null) return;
+      if(Input.GetKeyDown(KeyCode.Insert)) { MenuManager.ShowMenu = !MenuManager.ShowMenu; }
+      if(Input.GetKeyDown(KeyCode.Keypad0))
+      {
+        foreach(var i in Utils.GetObjectsInRadius(100))
+        {
+          var h = i.gameObject.GetComponent<HarvestMachine>();
+          var s = h.settings;
+          s.isInfinite = true;
+          s.isNotDistanceDependant = true;
+          h.TryHarvest();
+        }
+      }
+      if(Input.GetKeyDown(KeyCode.Keypad1)) { AntiJam.Enabled = !AntiJam.Enabled; }
+      if(Input.GetKeyDown(KeyCode.Keypad2)) { JumpHacks.Toggle(); }
+      if(Input.GetKeyDown(KeyCode.Keypad3)) { Speed.SpeedHack(); }
+      if(Input.GetKeyDown(KeyCode.Keypad4)) { NoFall = !NoFall; }
+      if(Input.GetKeyDown(KeyCode.Keypad5)) { Crosshair.Enabled = !Crosshair.Enabled; }
+      if(Input.GetKeyDown(KeyCode.Keypad6)) { AvoidHorde.Enabled = !AvoidHorde.Enabled; }
+      if(Input.GetKeyDown(KeyCode.Keypad7))
       {
         foreach(var item in Utils.GetObjectsInRadius(1000).Where(x => x.gameObject.GetComponent<HarvestMachine>() != null))
         {
           item.gameObject.GetComponent<HarvestMachine>()?.TryHarvest();
         }
       }
-      if(Input.GetKeyDown(KeyCode.Keypad7)) { }
-      if(Input.GetKeyDown(KeyCode.Keypad8)) { ESP.BEspStorage = !ESP.BEspStorage; }
-      if(Input.GetKeyDown(KeyCode.Keypad9)) { ESP.BEnabled = !ESP.BEnabled; }
-      //AntiDrown.MoveDrownChecker();
-      Speed.SpeedHack(B_SpeedHack);
-      JumpHacks.Toggle(B_JumpHack);
+      if(Input.GetKeyDown(KeyCode.Keypad8)) { ESP.EspStorage = !ESP.EspStorage; }
+      if(Input.GetKeyDown(KeyCode.Keypad9)) { ESP.Enabled = !ESP.Enabled; }
+      if(Input.GetMouseButtonUp(2)) { StartCoroutine(Teleport.ToLookPositionOnClick()); }
+    }
+    public void OnGUI()
+    {
+      if(ESP.Enabled) { ESP.RenderNetViews(); }
+      if(ESP.EspStorage) { ESP.RenderStorageESP(); }
     }
   }
 }

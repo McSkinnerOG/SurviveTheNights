@@ -532,8 +532,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Combat\AntiJam.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="MenuManager.cs" />
+    <Compile Include="Movement\Teleport.cs" />
     <Compile Include="NDraw\DrawConicSection.cs" />
     <Compile Include="NDraw\DrawCore.cs" />
     <Compile Include="NDraw\Drawer.cs" />
@@ -543,10 +545,11 @@
     <Compile Include="NDraw\DrawShapes.cs" />
     <Compile Include="NDraw\DrawSlider.cs" />
     <Compile Include="NDraw\DrawSlidingGrid.cs" />
-    <Compile Include="Patches\CharacterMotorDB_P.cs" />
-    <Compile Include="Patches\uLinkStrictPlatformer_Patch.cs" />
-    <Compile Include="Player\JumpHacks.cs" />
-    <Compile Include="Player\Speed.cs" />
+    <Compile Include="Movement\JumpHacks.cs" />
+    <Compile Include="Movement\Speed.cs" />
+    <Compile Include="Patches\ULinkStrictPlatformer_AdjustOwnerPos.cs" />
+    <Compile Include="Patches\CharacterMotorDB_UpdateFunction.cs" />
+    <Compile Include="Player\AvoidHorde.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Refs.cs" />
     <Compile Include="Render\Crosshair.cs" />
@@ -554,5 +557,13 @@
     <Compile Include="Utils.cs" />
     <None Include="GameDir.targets" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>wmic process where name='SurviveTheNights_Win.exe' delete</PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>xcopy "$(TargetDir)" "$(GameDir)\Bepinex\plugins\$(ProjectName)\" /q /s /y /i
+start steam://rungameid/541300</PostBuildEvent>
+  </PropertyGroup>
 </Project>

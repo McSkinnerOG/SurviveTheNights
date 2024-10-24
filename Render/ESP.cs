@@ -7,47 +7,53 @@ namespace SurviveTheNights.Render
 {
   public class ESP
   {
-    public static bool BEnabled = false;
+    public static bool Enabled = false;
+    public static bool AdvancedOptions = false;
+    public static float AdvancedOptionsDistance = 5f;
+    public static float AdvancedOptionsRadius = 100f;
     #region ESP TYPES
-    public static bool BEspAnimal = false;
-    public static bool BEspItem = true;
-    public static bool BEspPlayer = true;
-    public static bool BEspStorage = false;
-    public static bool BEspVehicle = false;
-    public static bool BEspWeapon = true;
-    public static bool BEspZombie = false;
+    public static bool EspAnimal = false;
+    public static bool EspItem = true;
+    public static bool EspPlayer = true;
+    public static bool EspStorage = false;
+    public static bool EspVehicle = false;
+    public static bool EspWeapon = true;
+    public static bool EspAmmo = true;
+    public static bool EspTools = true;
+    public static bool EspTraps = true;
+    public static bool EspZombie = false;
     #endregion
     #region ESP OPTIONS 
-    public static bool BDraw3DBox = true;
-    public static bool BDrawTracers = true;
-    public static bool BDrawDistance = true;
-    public static bool BDrawPosition = true;
-    public static bool BDrawFacingDirection = true;
-    public static float FEspDistanceItems = 1000f;
-    public static float FEspDistanceWeapons = 1000f;
-    public static float FEspDistanceVehicles = 1000f;
-    public static float FEspDistanceZombies = 1000f;
-    public static float FEspDistancePlayers = 1000f;
-    public static float FEspDistanceAnimals = 1f;
-    public static float FDistance = 0f;
-    public static float FRadius = 180f;
+    public static bool Draw3DBox = true;
+    public static bool DrawTracers = true;
+    public static bool DrawDistance = true;
+    public static bool DrawPosition = true;
+    public static bool DrawFacingDirection = true;
+    public static float EspDistanceItems = 300;
+    public static float EspDistanceWeapons = 500;
+    public static float EspDistanceVehicles = 2000f;
+    public static float EspDistanceZombies = 500f;
+    public static float EspDistancePlayers = 5000f;
+    public static float EspDistanceAnimals = 1000f;
+    public static float Distance = 0f;
+    public static float Radius = 180f;
     #endregion
     public static void RenderStorageESP()
     {
       if(Camera.main.GetComponent<Drawer>() == null) { _ = Camera.main.gameObject.AddComponent<Drawer>(); }
       foreach(var fom in FixedObjects.instance.fixedObjects.Values.Where(g => g.identifier.Contains("container") && g.attachedObjectsCount > 0))
       {
-        FDistance = Vector3.Distance(Refs.LP_Position, fom.gameObject.transform.position);
+        Distance = Vector3.Distance(Refs.LP_Position, fom.gameObject.transform.position);
         var w2s = Camera.main.WorldToScreenPoint(fom.transform.position);
-        if(w2s.z > 0 && FDistance < FEspDistanceItems)
+        if(w2s.z > 0 && Distance < EspDistanceItems)
         {
-          var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
+          var sradius = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
           var attachedObjects = 0;
-          var text = $"            || LOOTABLE";
-          if(sdist < 100 && FDistance < 5)
+          var text = $"            || STORAGE";
+          if(sradius < AdvancedOptionsRadius && Distance < AdvancedOptionsDistance)
           {
             text =
-            $"                                 {Convert.ToInt32(FDistance)}M\n" +
+            $"                                 {Convert.ToInt32(Distance)}M\n" +
             $"||============= Storage Info ============||\n" +
             $"|| NAME: {fom.typeName}\n" +
             $"|| POS: {fom.transform.position}\n";
@@ -59,10 +65,10 @@ namespace SurviveTheNights.Render
           }
           else
           {
-            text = $"            || LOOTABLE";
-            if(BDrawDistance) { text += $"|| {Convert.ToInt32(FDistance)}m\n"; }
+            text = $"            || STORAGE";
+            if(DrawDistance) { text += $"|| {Convert.ToInt32(Distance)}m\n"; }
           }
-          GUI.color = Utils.GUIColorByDistance(FDistance);
+          GUI.color = Utils.GUIColorByDistance(Distance);
           GUI.Label(new Rect(w2s.x - 100, Screen.height - w2s.y, 300, 400), new GUIContent(text));
           GUI.color = Color.white;
         }
@@ -73,63 +79,63 @@ namespace SurviveTheNights.Render
       if(Camera.main.GetComponent<Drawer>() == null) { _ = Camera.main.gameObject.AddComponent<Drawer>(); }
       foreach(var nvb in Refs.LP_NetView._network._enabledViews.Values)
       {
-        FDistance = Vector3.Distance(Refs.LP_Position, nvb.gameObject.transform.position);
+        Distance = Vector3.Distance(Refs.LP_Position, nvb.gameObject.transform.position);
         var metaData = nvb.gameObject.GetComponent<ObjectMetaData>();
         if(metaData != null)
         {
           var inventory = metaData.itemProperties;
           var category = inventory.category;
-          if(BEspItem && FEspDistanceItems > FDistance)
+          if(EspItem && EspDistanceItems > Distance)
           {
             if(category == SpawnTypes.Food || metaData.itemProperties.category == SpawnTypes.Drink) { RenderFoodAndWater(nvb.gameObject, inventory, category); }
             if(category is SpawnTypes.ItemResources or SpawnTypes.ItemResourcesNonStack) { RenderItems(nvb.gameObject, inventory, category); }
             if(category == SpawnTypes.Medical) { RenderMedical(nvb.gameObject, inventory, category); }
+            if(category == SpawnTypes.ToolsNonStack) { RenderTool(nvb.gameObject, inventory, category); }
           }
-          if(BEspWeapon && FEspDistanceWeapons > FDistance)
+          if(EspWeapon && EspDistanceWeapons > Distance)
           {
             if(category is SpawnTypes.AmmoNonStack or SpawnTypes.meleeWeaponsNonStack or SpawnTypes.WeaponsNonStack) { RenderWeapons(nvb.gameObject, inventory, category); }
           }
-          if(BEspVehicle && FEspDistanceVehicles > FDistance && category == SpawnTypes.Vehicle) { RenderVehicles(nvb.gameObject, inventory); }
+          if(EspVehicle && EspDistanceVehicles > Distance && category == SpawnTypes.Vehicle) { RenderVehicles(nvb.gameObject, inventory); }
         }
-        if(BEspAnimal && FEspDistanceAnimals > FDistance && nvb.name.Contains("AI_") && !nvb.name.Contains("Zombie")) { RenderAnimals(nvb.gameObject); }
-        if(BEspPlayer && FEspDistancePlayers > FDistance && nvb.name.Contains("Player@Proxy(Clone)")) { RenderPlayer(nvb.gameObject); }
-        if(BEspZombie && FEspDistanceZombies > FDistance && nvb.name.Contains("AI_Zombie@Proxy(Clone)")) { RenderZombies(nvb.gameObject); }
+        if(EspAnimal && EspDistanceAnimals > Distance && nvb.name.Contains("AI_") && !nvb.name.Contains("Zombie")) { RenderAnimals(nvb.gameObject); }
+        if(EspPlayer && EspDistancePlayers > Distance && nvb.name.Contains("Player@Proxy(Clone)")) { RenderPlayer(nvb.gameObject); }
+        if(EspZombie && EspDistanceZombies > Distance && nvb.name.Contains("AI_Zombie@Proxy(Clone)")) { RenderZombies(nvb.gameObject); }
       }
     }
     public static void RenderItems(GameObject go, InventorySlot inventory, SpawnTypes category)
     {
       if(Camera.main.GetComponent<Drawer>() == null) { _ = Camera.main.gameObject.AddComponent<Drawer>(); }
-      FDistance = Vector3.Distance(Refs.LP_Position, go.transform.position);
+      Distance = Vector3.Distance(Refs.LP_Position, go.transform.position);
       if(Camera.main == null) return;
       var w2s = Camera.main.WorldToScreenPoint(go.transform.position);
       if(w2s.z > 0)
       {
         var renderer = go.GetComponentInChildren<MeshRenderer>();
-        _ = $"              {inventory.itemName_Localized}\n";
+        var text = $"              {inventory.itemName_Localized}\n";
         var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
-        string text;
-        if(sdist < 100 && FDistance < 5)
+        if(sdist < AdvancedOptionsRadius && Distance < AdvancedOptionsDistance)
         {
           text =
              $"||============== Item =============||\n" +
              $"|| NAME: {inventory.itemName_Localized}\n";
-          if(BDrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(FDistance)}m\n"; }
+          if(DrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(Distance)}m\n"; }
         }
         else
         {
-          text = $"                {inventory.itemName_Localized}  --  {Convert.ToInt32(FDistance)}m\n";
+          text = $"                {inventory.itemName_Localized}  --  {Convert.ToInt32(Distance)}m\n";
           GUI.Label(new Rect(w2s.x - 20, Screen.height - w2s.y, 50, 50), new GUIContent(inventory.dataStore.iTemGUI));
         }
-        GUI.color = Utils.GUIColorByDistance(FDistance);
+        GUI.color = Utils.GUIColorByDistance(Distance);
         GUI.Label(new Rect(w2s.x - 130, Screen.height - w2s.y, 400, 500), new GUIContent(text));
         GUI.color = Color.white;
-        if(renderer != null && BDraw3DBox) { Draw.World.Cube(go.transform.position, renderer.bounds.extents, go.transform.forward, go.transform.up); }
+        if(renderer != null && Draw3DBox) { Draw.World.Cube(go.transform.position, renderer.bounds.extents, go.transform.forward, go.transform.up); }
       }
     }
     public static void RenderAnimals(GameObject go)
     {
       if(Camera.main.GetComponent<Drawer>() == null) { _ = Camera.main.gameObject.AddComponent<Drawer>(); }
-      FDistance = Vector3.Distance(Refs.LP_Position, go.transform.position);
+      Distance = Vector3.Distance(Refs.LP_Position, go.transform.position);
       if(Camera.main == null) return;
       var w2s = Camera.main.WorldToScreenPoint(go.transform.position);
       if(w2s.z > 0)
@@ -139,27 +145,26 @@ namespace SurviveTheNights.Render
         var boxCollider = go.GetComponent<BoxCollider>();
         var position = go.transform.position;
         var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
-        _ = $"            {aiProxy.aiSettings.NPCName}  --  {Convert.ToInt32(FDistance)}m\n";
-        string text;
-        if(sdist < 100)
+        var text = $"            {aiProxy.aiSettings.NPCName}  --  {Convert.ToInt32(Distance)}m\n";
+        if(sdist < AdvancedOptionsRadius && Distance < AdvancedOptionsDistance)
         {
           text =
-          $"                                 {Convert.ToInt32(FDistance)}M\n" +
+          $"                                 {Convert.ToInt32(Distance)}M\n" +
           $"||============= Animal Info ============||\n" +
           $"|| NAME: {aiProxy.aiSettings.NPCName}\n" +
           $"|| NAME: {aiProxy.spawnType}\n" +
           $"|| POS: {go.transform.position}\n";
-          if(BDrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(FDistance)}m\n"; }
+          if(DrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(Distance)}m\n"; }
         }
         else
         {
-          text = $"            {aiProxy.aiSettings.NPCName}  --  {Convert.ToInt32(FDistance)}m\n";
+          text = $"            {aiProxy.aiSettings.NPCName}  --  {Convert.ToInt32(Distance)}m\n";
         }
-        GUI.color = Utils.GUIColorByDistance(FDistance);
+        GUI.color = Utils.GUIColorByDistance(Distance);
         GUI.Label(new Rect(w2s.x - 100, Screen.height - w2s.y, 300, 400), text);
         GUI.color = Color.white;
         //TODO:: Change to proper hit-colliders and change based on if LOD model is loaded/visible skinmeshrenderer
-        if(BDraw3DBox)
+        if(Draw3DBox)
         {
           if(meshRenderer != null)
           {
@@ -179,21 +184,20 @@ namespace SurviveTheNights.Render
     public static void RenderFoodAndWater(GameObject go, InventorySlot inventory, SpawnTypes category)
     {
       if(Camera.main.GetComponent<Drawer>() == null) { _ = Camera.main.gameObject.AddComponent<Drawer>(); }
-      FDistance = Vector3.Distance(Refs.LP_Position, go.transform.position);
+      Distance = Vector3.Distance(Refs.LP_Position, go.transform.position);
       if(Camera.main == null) return;
       var w2s = Camera.main.WorldToScreenPoint(go.transform.position);
       if(w2s.z > 0)
       {
-        _ = $"            {inventory.itemName_Localized}\n";
+        var text = $"            {inventory.itemName_Localized}\n";
         var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
-        string text;
-        if(sdist < 100 && FDistance < 5)
+        if(sdist < AdvancedOptionsRadius && Distance < AdvancedOptionsDistance)
         {
           text =
           $"||============== Item =============||\n" +
           $"|| NAME: {inventory.itemName_Localized}\n" +
           $"|| ID: {inventory.typeID}\n";
-          if(BDrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(FDistance)}m\n"; }
+          if(DrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(Distance)}m\n"; }
           if(inventory.consumable.health != 0) { text += $"|| HEALTH: {inventory.consumable.health}\n"; }
           if(inventory.consumable.stamina != 0) { text += $"|| STAMINA: {inventory.consumable.stamina}\n"; }
           if(inventory.consumable.cals != 0) { text += $"|| CALORIES: {inventory.consumable.cals}\n"; }
@@ -203,14 +207,14 @@ namespace SurviveTheNights.Render
         else
         {
           text =
-          $"             {inventory.itemName_Localized}  --  {Convert.ToInt32(FDistance)}m\n";
+          $"             {inventory.itemName_Localized}  --  {Convert.ToInt32(Distance)}m\n";
           GUI.Label(new Rect(w2s.x - 20, Screen.height - w2s.y, 50, 50), new GUIContent(inventory.dataStore.iTemGUI));
         }
-        GUI.color = Utils.GUIColorByDistance(FDistance);
+        GUI.color = Utils.GUIColorByDistance(Distance);
         GUI.Label(new Rect(w2s.x - 130, Screen.height - w2s.y, 400, 500), new GUIContent(text));
         GUI.color = Color.white;
         var renderer = go.GetComponentInChildren<MeshRenderer>();
-        if(renderer != null && BDraw3DBox)
+        if(renderer != null && Draw3DBox)
         {
           if(FilterFood && category == SpawnTypes.Food) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); }
           if(FilterWater && category == SpawnTypes.Drink) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); }
@@ -220,54 +224,82 @@ namespace SurviveTheNights.Render
     }
     public static void RenderWeapons(GameObject go, InventorySlot inventory, SpawnTypes category)
     {
-      FDistance = Vector3.Distance(Refs.LP_Position, go.transform.position);
+      Distance = Vector3.Distance(Refs.LP_Position, go.transform.position);
       if(Camera.main.GetComponent<Drawer>() == null) { _ = Camera.main.gameObject.AddComponent<Drawer>(); }
       if(Camera.main == null) return;
       var w2s = Camera.main.WorldToScreenPoint(go.transform.position);
       if(w2s.z > 0)
       {
         var renderer = go.GetComponentInChildren<MeshRenderer>();
-        _ = $"              Weapon: {inventory.itemName_Localized}\n";
+        var text = $"              Weapon: {inventory.itemName_Localized}\n";
         var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
-        string text;
-        if(sdist < 100 && FDistance < 3)
+        if(sdist < AdvancedOptionsRadius && Distance < AdvancedOptionsDistance)
         {
           text =
              $"||============== Weapon =============||\n" +
              $"|| NAME: {inventory.itemName_Localized}\n";
-          if(BDrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(FDistance)}m\n"; }
+          if(DrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(Distance)}m\n"; }
         }
         else
         {
-          text = $"                {inventory.itemName_Localized}  --  {Convert.ToInt32(FDistance)}m\n";
+          text = $"                {inventory.itemName_Localized}  --  {Convert.ToInt32(Distance)}m\n";
           GUI.Label(new Rect(w2s.x - 20, Screen.height - w2s.y, 50, 50), new GUIContent(inventory.dataStore.iTemGUI));
         }
-        GUI.color = Utils.GUIColorByDistance(FDistance);
+        GUI.color = Utils.GUIColorByDistance(Distance);
         GUI.Label(new Rect(w2s.x - 130, Screen.height - w2s.y, 400, 500), new GUIContent(text));
         GUI.color = Color.white;
 
-        if(renderer != null && BDraw3DBox) { Draw.World.Cube(go.transform.position, renderer.bounds.extents, go.transform.forward, go.transform.up); }
+        if(renderer != null && Draw3DBox) { Draw.World.Cube(go.transform.position, renderer.bounds.extents, go.transform.forward, go.transform.up); }
+      }
+    }
+    public static void RenderTool(GameObject go, InventorySlot inventory, SpawnTypes category)
+    {
+      if(Camera.main.GetComponent<Drawer>() == null) { _ = Camera.main.gameObject.AddComponent<Drawer>(); }
+      Distance = Vector3.Distance(Refs.LP_Position, go.transform.position);
+      if(Camera.main == null) return;
+      var w2s = Camera.main.WorldToScreenPoint(go.transform.position);
+      if(w2s.z > 0)
+      {
+        var renderer = go.GetComponentInChildren<MeshRenderer>();
+        var text = $"              || Tool: {inventory.category}\n";
+        var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
+        if(sdist < AdvancedOptionsRadius && Distance < AdvancedOptionsDistance)
+        {
+          text =
+          $"||============== Tool =============||\n" +
+          $"|| NAME: {inventory.itemName_Localized}\n" +
+          $"|| ID: {inventory.typeID}\n";
+          if(DrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(Distance)}m\n"; }
+        }
+        else
+        {
+          text = $"                {inventory.category}  --  {Convert.ToInt32(Distance)}m\n";
+          GUI.Label(new Rect(w2s.x - 20, Screen.height - w2s.y, 50, 50), new GUIContent(inventory.dataStore.iTemGUI));
+        }
+        GUI.color = Utils.GUIColorByDistance(Distance);
+        GUI.Label(new Rect(w2s.x - 130, Screen.height - w2s.y, 400, 500), new GUIContent(text));
+        GUI.color = Color.white;
+        if(renderer != null && Draw3DBox) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); }
       }
     }
     public static void RenderMedical(GameObject go, InventorySlot inventory, SpawnTypes category)
     {
       if(Camera.main.GetComponent<Drawer>() == null) { _ = Camera.main.gameObject.AddComponent<Drawer>(); }
-      FDistance = Vector3.Distance(Refs.LP_Position, go.transform.position);
+      Distance = Vector3.Distance(Refs.LP_Position, go.transform.position);
       if(Camera.main == null) return;
       var w2s = Camera.main.WorldToScreenPoint(go.transform.position);
       if(w2s.z > 0)
       {
         var renderer = go.GetComponentInChildren<MeshRenderer>();
-        _ = $"              || Medical: {inventory.category}\n";
+        var text = $"              || Medical: {inventory.category}\n";
         var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
-        string text;
-        if(sdist < 100 && FDistance < 5)
+        if(sdist < AdvancedOptionsRadius && Distance < AdvancedOptionsDistance)
         {
           text =
           $"||============== Medical =============||\n" +
           $"|| NAME: {inventory.itemName_Localized}\n" +
           $"|| ID: {inventory.typeID}\n";
-          if(BDrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(FDistance)}m\n"; }
+          if(DrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(Distance)}m\n"; }
           if(inventory.consumable.health != 0) { text += $"|| HEALTH: {inventory.consumable.health}\n"; }
           if(inventory.consumable.stamina != 0) { text += $"|| STAMINA: {inventory.consumable.stamina}\n"; }
           if(inventory.consumable.cals != 0) { text += $"|| CALORIES: {inventory.consumable.cals}\n"; }
@@ -276,32 +308,32 @@ namespace SurviveTheNights.Render
         }
         else
         {
-          text = $"                {inventory.category}  --  {Convert.ToInt32(FDistance)}m\n";
+          text = $"                {inventory.category}  --  {Convert.ToInt32(Distance)}m\n";
           GUI.Label(new Rect(w2s.x - 20, Screen.height - w2s.y, 50, 50), new GUIContent(inventory.dataStore.iTemGUI));
         }
-        GUI.color = Utils.GUIColorByDistance(FDistance);
+        GUI.color = Utils.GUIColorByDistance(Distance);
         GUI.Label(new Rect(w2s.x - 130, Screen.height - w2s.y, 400, 500), new GUIContent(text));
         GUI.color = Color.white;
-        if(renderer != null && BDraw3DBox) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); }
+        if(renderer != null && Draw3DBox) { Draw.World.Cube(go.transform.position, renderer.bounds.size, go.transform.forward, go.transform.up); }
       }
     }
     public static void RenderPlayer(GameObject go)
     {
       if(Camera.main.GetComponent<Drawer>() == null) { _ = Camera.main.gameObject.AddComponent<Drawer>(); }
-      FDistance = Vector3.Distance(Refs.LP_GO.transform.position, go.transform.position);
+      Distance = Vector3.Distance(Refs.LP_GO.transform.position, go.transform.position);
       if(Camera.main == null) return;
       var w2s = Camera.main.WorldToScreenPoint(go.transform.position);
       var proxy = go.GetComponent<PlayerProxy>();
       var user = proxy.userOnClient;
       if(user.isMe || !(w2s.z > 0)) return;
       var text =
-        $"                                 {Convert.ToInt32(FDistance)}m\n" +
+        $"                                 {Convert.ToInt32(Distance)}m\n" +
         $"||============== Player Info =============||\n" +
         $"|| NAME: {user.lastKnowPersonalName}\n" +
         $"|| Friend: {proxy.isFriend}\n" +
         $"|| SID: {user.steam64ID}\n" +
         $"|| POS: {go.transform.position}\n";
-      if(FDistance < 180)
+      if(Distance < 180)
       {
         var weapons = proxy._proxyWeapons;
         if(weapons != null && weapons.currentSpawnedWeapon != null)
@@ -341,14 +373,14 @@ namespace SurviveTheNights.Render
                    $"|| SEATS: {vehicle.seatsHolder.seats.Count}\n" +
                    $"|| DRIVER: {user.isInVehicleAsDriver}\n";
       }
-      GUI.color = Utils.GUIColorByDistance(FDistance);
+      GUI.color = Utils.GUIColorByDistance(Distance);
       GUI.Label(new Rect(w2s.x - 130, Screen.height - w2s.y, 400, 500), text);
       GUI.color = Color.white;
     }
     public static void RenderVehicles(GameObject go, InventorySlot inventory)
     {
 
-      FDistance = Vector3.Distance(Refs.LP_GO.transform.position, go.transform.position);
+      Distance = Vector3.Distance(Refs.LP_GO.transform.position, go.transform.position);
       if(Camera.main != null)
       {
         if(Camera.main.GetComponent<Drawer>() == null) { _ = Camera.main.gameObject.AddComponent<Drawer>(); }
@@ -357,7 +389,7 @@ namespace SurviveTheNights.Render
         var vehicle = go.GetComponent<VehicleClient>();
         var occupiedSeats = vehicle.seatsHolder.seats.Count(v => v.seatOccupied);
         var text = $"            || VEHICLE";
-        if(BDrawDistance) { text += $"|| {Convert.ToInt32(FDistance)}m\n"; }
+        if(DrawDistance) { text += $"|| {Convert.ToInt32(Distance)}m\n"; }
         var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
         text = sdist < 100
           ? $"||============= Vehicle =============||\n" +
@@ -365,8 +397,8 @@ namespace SurviveTheNights.Render
          $"|| SEATS: {vehicle.seatsHolder.seats.Count}\n" +
          $"|| SEATS OCCUPIED: {occupiedSeats} {vehicle.seatsHolder.seats.Count}\n" +
          $"|| ID: {inventory.typeID}\n"
-          : $"            || VEHICLE  --  {Convert.ToInt32(FDistance)}m";
-        GUI.color = Utils.GUIColorByDistance(FDistance);
+          : $"            || VEHICLE  --  {Convert.ToInt32(Distance)}m";
+        GUI.color = Utils.GUIColorByDistance(Distance);
         GUI.Label(new Rect(w2s.x - 100, Screen.height - w2s.y, 400, 500), text);
         GUI.color = Color.white;
         MeshCollider meshCollider = null;
@@ -380,7 +412,7 @@ namespace SurviveTheNights.Render
         }
         else if(meshCollider != null)
         {
-          if(BDraw3DBox) { Draw.World.Cube(go.transform.position, go.GetComponent<MeshCollider>().bounds.size, go.transform.forward, go.transform.up); }
+          if(Draw3DBox) { Draw.World.Cube(go.transform.position, go.GetComponent<MeshCollider>().bounds.size, go.transform.forward, go.transform.up); }
         }
       }
     }
@@ -388,7 +420,7 @@ namespace SurviveTheNights.Render
     {
       var trans = go.transform;
       var pos = trans.position;
-      FDistance = Vector3.Distance(Refs.LP_Position, pos);
+      Distance = Vector3.Distance(Refs.LP_Position, pos);
       if(Camera.main == null) return;
       if(Camera.main.GetComponent<Drawer>() == null) { _ = Camera.main.gameObject.AddComponent<Drawer>(); }
       var w2s = Camera.main.WorldToScreenPoint(pos);
@@ -398,22 +430,22 @@ namespace SurviveTheNights.Render
       {
         var sdist = Vector2.Distance(w2s, new Vector3(Screen.width / 2, Screen.height / 2, 0));
         string text;
-        if(sdist < 100)
+        if(sdist < AdvancedOptionsRadius && Distance < AdvancedOptionsDistance)
         {
           text =
            $"||============= Zombie ============||\n" +
            $"|| NAME: {aiProxy.aiSettings.NPCName}\n" +
            $"|| POS: {pos}\n";
-          if(BDrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(FDistance)}m\n"; }
+          if(DrawDistance) { text += $"|| DISTANCE: {Convert.ToInt32(Distance)}m\n"; }
         }
         else
         {
-          text = $"             || ZOMBIE  --  {Convert.ToInt32(FDistance)}m\n";
+          text = $"             || ZOMBIE  --  {Convert.ToInt32(Distance)}m\n";
         }
-        GUI.color = Utils.GUIColorByDistance(FDistance);
+        GUI.color = Utils.GUIColorByDistance(Distance);
         GUI.Label(new Rect(w2s.x - 100, Screen.height - w2s.y, 400, 500), text);
         GUI.color = Color.white;
-        if(renderer != null && BDraw3DBox) { Draw.World.Cube(new Vector3(pos.x, renderer.bounds.center.y, pos.z), renderer.bounds.size, trans.forward, trans.up); }
+        if(renderer != null && Draw3DBox) { Draw.World.Cube(new Vector3(pos.x, renderer.bounds.center.y, pos.z), renderer.bounds.size, trans.forward, trans.up); }
       }
     }
 
